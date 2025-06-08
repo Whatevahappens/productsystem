@@ -1,0 +1,42 @@
+version: '3.8'
+
+services:
+  eureka-server:
+    image: eureka-server:latest
+    build:
+      context: ./eureka-server
+    ports:
+      - "8761:8761"
+    networks:
+      - ecommerce-network
+
+  mongodb:
+    image: mongo:latest
+    ports:
+      - "27017:27017"
+    volumes:
+      - mongodb_data:/data/db
+    networks:
+      - ecommerce-network
+
+  product-service:
+    image: product-service:latest
+    build:
+      context: ./product-service
+    ports:
+      - "8081:8081"
+    environment:
+      - SPRING_DATA_MONGODB_HOST=mongodb
+      - EUREKA_CLIENT_SERVICEURL_DEFAULTZONE=http://eureka-server:8761/eureka
+    depends_on:
+      - eureka-server
+      - mongodb
+    networks:
+      - ecommerce-network
+
+volumes:
+  mongodb_data:
+
+networks:
+  ecommerce-network:
+    driver: bridge
